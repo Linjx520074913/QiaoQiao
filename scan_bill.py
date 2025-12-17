@@ -280,6 +280,9 @@ def display_order_list_results(results, stats, times):
         if inv.seller_name:
             print(f"  🏢 {inv.seller_name}")
 
+        if inv.invoice_date:
+            print(f"  📅 {inv.invoice_date}")
+
         if inv.items:
             print(f"  商品: {len(inv.items)}件")
             for item in inv.items[:3]:

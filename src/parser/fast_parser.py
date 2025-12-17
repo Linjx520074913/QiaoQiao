@@ -64,8 +64,9 @@ class FastBillParser:
     # 极简提示词（仅提取关键信息，跳过商品明细）
     SUMMARY_PROMPT_TEMPLATE = """从文本提取账单关键信息，输出 JSON。
 
-字段：seller_name（商家）, total_amount（总金额）, invoice_number（订单号）, invoice_date（日期）
-金额为纯数字，未知为 null。
+字段：seller_name（商家）, total_amount（总金额）, invoice_number（订单号）, invoice_date（日期时间）
+- 金额为纯数字，未知为 null
+- 日期格式示例："2024-12-17 14:30" 或 "12月17日 14:30"，提取任何日期或时间信息
 
 文本：
 {text}
@@ -153,6 +154,7 @@ JSON："""
             清理后的字典
         """
         import re
+        from datetime import datetime
 
         def clean_number(value):
             """清理数字字符串"""
@@ -240,6 +242,10 @@ JSON："""
                     total = sum(item.get('amount', 0) or 0 for item in data['items'])
                     if total > 0:
                         data['total_amount'] = total
+
+        # 如果没有提取到日期，使用当前系统时间
+        if 'invoice_date' not in data or not data['invoice_date']:
+            data['invoice_date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         return data
 
