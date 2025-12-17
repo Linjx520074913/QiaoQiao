@@ -12,7 +12,10 @@ from PIL import Image
 import tempfile
 
 # 添加引擎路径到sys.path
-ENGINE_PATH = Path(__file__).parent.parent.parent.parent.parent / "engine"
+# backend/app/api/v1/endpoints/scan.py -> backend/app/api/v1/endpoints
+# -> backend/app/api/v1 -> backend/app/api -> backend/app -> backend -> kapi
+BACKEND_PATH = Path(__file__).parent.parent.parent.parent.parent
+ENGINE_PATH = BACKEND_PATH.parent / "engine"
 sys.path.insert(0, str(ENGINE_PATH))
 
 from src.ocr import RapidOCREngine
