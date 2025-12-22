@@ -22,16 +22,49 @@ struct ContentView: View {
     @State private var skipItems = false
     @State private var useFastMode = false
     @State private var selectedItem: PhotosPickerItem?
+    @State private var showDebugCard = true // 调试模式：直接显示卡片
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // 服务器状态
-                    Text(serverStatus)
-                        .font(.caption)
-                        .foregroundColor(serverStatus.contains("✓") ? .green : .red)
-                        .padding(.top)
+            ZStack {
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // 测试按钮组
+                        VStack(spacing: 12) {
+                            // 测试1：创建待确认账单
+                            Button(action: {
+                                AppStateManager.shared.createMockPendingBill()
+                            }) {
+                                Label("测试：App内账单卡片", systemImage: "bell.badge")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.purple)
+                                    .cornerRadius(12)
+                            }
+
+                            // 测试2：启动 Live Activity
+                            Button(action: {
+                                testLiveActivity()
+                            }) {
+                                Label("测试：桌面Live Activity", systemImage: "rectangle.stack.badge.play")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.orange)
+                                    .cornerRadius(12)
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.top, 20)
+
+                        // 服务器状态
+                        Text(serverStatus)
+                            .font(.caption)
+                            .foregroundColor(serverStatus.contains("✓") ? .green : .red)
+                            .padding(.top)
 
                     // 图片预览
                     if let image = selectedImage {
@@ -121,11 +154,39 @@ struct ContentView: View {
                 }
                 .padding(.vertical)
             }
+
+            // 调试卡片 - 直接在主页面显示
+            if showDebugCard {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        showDebugCard = false
+                    }
+
+                BillCardView(
+                    record: createDebugRecord(),
+                    backgroundColor: Color(.systemGroupedBackground)
+                ) {
+                    print("调试：点击记账按钮")
+                    showDebugCard = false
+                }
+                .padding(20)
+                .transition(.scale.combined(with: .opacity))
+            }
+        }
             .navigationTitle("KAPI - 智能账单识别")
             .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(isPresented: $showResult) {
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink(destination: BillListView()) {
+                        Image(systemName: "list.bullet.rectangle")
+                    }
+                }
+            }
+            .fullScreenCover(isPresented: $showResult) {
                 if let result = scanResult, let image = selectedImage {
                     ResultView(scanResult: result, image: image)
+                        .presentationBackground(.clear)
                 }
             }
             .sheet(isPresented: $showCamera) {
@@ -185,6 +246,59 @@ struct ContentView: View {
             errorMessage = error.localizedDescription
             showError = true
         }
+    }
+
+    // MARK: - 测试 Live Activity
+    private func testLiveActivity() {
+        // 创建模拟账单
+        let mockBill = PendingBill(
+            id: UUID().uuidString,
+            merchantName: "德园闽肠粉·蚝油捞·炖汤",
+            amount: 63.30,
+            timestamp: Date(),
+            category: "餐饮"
+        )
+
+        // 创建模拟账单明细
+        let mockItems: [BillScanAttributes.ContentState.BillItem] = [
+            .init(name: "闽肠粉", price: 15.30, quantity: 1),
+            .init(name: "蚝油捞面", price: 36.00, quantity: 2),
+            .init(name: "炖汤", price: 12.00, quantity: 1)
+        ]
+
+        // 保存到持久化存储（用于深度链接）
+        if let data = try? JSONEncoder().encode(mockBill) {
+            UserDefaults.standard.set(data, forKey: "pendingBill_\(mockBill.id)")
+        }
+
+        // 启动 Live Activity
+        if #available(iOS 16.2, *) {
+            LiveActivityManager.shared.startActivity(from: mockBill, items: mockItems)
+            print("✅ 已启动 Live Activity，请查看桌面/锁屏")
+        } else {
+            print("❌ Live Activity 需要 iOS 16.2+")
+        }
+    }
+
+    // MARK: - 创建调试数据（星巴克简化版 - 卡片3）
+    private func createDebugRecord() -> BillRecord {
+        let invoice = Invoice(
+            invoiceType: "咖啡店",
+            invoiceNumber: "1234567890",
+            invoiceDate: "2025-12-17 09:45:00",
+            sellerName: "星巴克咖啡",
+            buyerName: nil,
+            buyerPhone: nil,
+            totalAmount: 45.00,
+            items: nil,  // 无商品明细
+            remarks: nil
+        )
+
+        return BillRecord(
+            invoice: invoice,
+            image: nil,
+            scanPerformance: ["total": 2.5, "ocr": 0.8, "parse": 1.7]
+        )
     }
 }
 

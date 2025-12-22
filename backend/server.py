@@ -321,21 +321,21 @@ async def health_check():
 async def scan_bill(
     file: UploadFile = File(..., description="账单图片"),
     skip_items: bool = Form(False, description="跳过商品明细"),
-    clean_text: bool = Form(False, description="清理文本"),
+    clean_text: bool = Form(True, description="清理文本"),
     format_text: bool = Form(False, description="格式化文本"),
-    concurrent: bool = Form(False, description="并发处理"),
-    use_angle_cls: bool = Form(True, description="角度检测"),
+    concurrent: bool = Form(True, description="并发处理"),
+    use_angle_cls: bool = Form(False, description="角度检测"),
     model: Optional[str] = Form(None, description="LLM 模型"),
 ):
     """
     扫描账单（标准模式）
 
     - **file**: 账单图片
-    - **skip_items**: 跳过商品明细（提升 50% 速度）
-    - **clean_text**: 清理 OCR 文本（提升 5-10% 速度）
-    - **format_text**: 格式化文本（提升 20-30% 速度，可能漏项）
-    - **concurrent**: 并发解析订单列表
-    - **use_angle_cls**: OCR 角度检测
+    - **skip_items**: 跳过商品明细（默认 False）
+    - **clean_text**: 清理 OCR 文本（默认 True，提升 5-10% 速度）
+    - **format_text**: 格式化文本（默认 False，提升 20-30% 速度但可能漏项）
+    - **concurrent**: 并发解析订单列表（默认 True）
+    - **use_angle_cls**: OCR 角度检测（默认 False，关闭可提升速度）
     - **model**: LLM 模型（默认 qwen2.5:3b）
     """
     # 检查文件类型
@@ -394,21 +394,24 @@ async def scan_bill(
 @app.post("/scan/fast", response_model=ScanResponse)
 async def scan_bill_fast(
     file: UploadFile = File(..., description="账单图片"),
+    skip_items: bool = Form(True, description="跳过商品明细"),
+    clean_text: bool = Form(True, description="清理文本"),
     concurrent: bool = Form(True, description="并发处理"),
-    skip_items: bool = Form(False, description="跳过商品明细"),
 ):
     """
     快速扫描（预设优化参数）
 
     - 使用 qwen2.5:1.5b 小模型
-    - 关闭角度检测
-    - 可选跳过商品明细
-    - 速度: 3-4 秒（包含明细），2-3 秒（跳过明细）
+    - 默认跳过商品明细（--no-items）
+    - 默认清理文本（--clean）
+    - 默认关闭角度检测（--no-angle）
+    - 默认并发处理（--concurrent）
+    - 速度: 2-3 秒
     """
     return await scan_bill(
         file=file,
         skip_items=skip_items,
-        clean_text=False,
+        clean_text=clean_text,
         format_text=False,
         concurrent=concurrent,
         use_angle_cls=False,

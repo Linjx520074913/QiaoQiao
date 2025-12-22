@@ -2,7 +2,7 @@
 //  ResultView.swift
 //  qiaoqiao
 //
-//  结果显示页面
+//  识别结果展示页面 - 全屏悬浮卡片
 //
 
 import SwiftUI
@@ -11,135 +11,144 @@ struct ResultView: View {
     let scanResult: ScanResult
     let image: UIImage
 
+    @ObservedObject var billManager = BillManager.shared
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var showingSaveAlert = false
+    @State private var isSaved = false
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // 显示图片
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxHeight: 200)
-                    .cornerRadius(12)
-                    .padding(.horizontal)
-
-                if let data = scanResult.data, let invoice = data.invoice {
-                    // 基本信息
-                    InfoCard(title: "基本信息") {
-                        VStack(alignment: .leading, spacing: 8) {
-                            if let type = invoice.invoiceType {
-                                InfoRow(label: "类型", value: type)
-                            }
-                            if let seller = invoice.sellerName {
-                                InfoRow(label: "商家", value: seller)
-                            }
-                            if let date = invoice.invoiceDate {
-                                InfoRow(label: "日期", value: date)
-                            }
-                            if let number = invoice.invoiceNumber {
-                                InfoRow(label: "订单号", value: number)
-                            }
-                        }
-                    }
-
-                    // 商品明细
-                    if let items = invoice.items, !items.isEmpty {
-                        InfoCard(title: "商品明细 (\(items.count)项)") {
-                            VStack(alignment: .leading, spacing: 8) {
-                                ForEach(items.prefix(5), id: \.name) { item in
-                                    HStack {
-                                        Text("• \(item.name)")
-                                            .font(.system(size: 14))
-                                        Spacer()
-                                        if let amount = item.amount {
-                                            Text(String(format: "¥%.2f", amount))
-                                                .font(.system(size: 14))
-                                                .foregroundColor(.secondary)
-                                        }
-                                    }
-                                }
-
-                                if items.count > 5 {
-                                    Text("... 还有 \(items.count - 5) 项")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                        }
-                    }
-
-                    // 总金额
-                    if let total = invoice.totalAmount {
-                        InfoCard(title: "总金额") {
-                            Text(String(format: "¥%.2f", total))
-                                .font(.system(size: 32, weight: .bold))
-                                .foregroundColor(.blue)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                        }
-                    }
+        ZStack {
+            // 半透明遮罩层（点击可关闭）
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    dismiss()
                 }
 
-                // 性能统计
-                if let performance = scanResult.performance {
-                    InfoCard(title: "性能统计") {
-                        VStack(alignment: .leading, spacing: 8) {
-                            if let total = performance["total"] {
-                                InfoRow(label: "总耗时", value: String(format: "%.2fs", total))
-                            }
-                            if let ocr = performance["ocr"] {
-                                InfoRow(label: "OCR", value: String(format: "%.2fs", ocr))
-                            }
-                            if let parse = performance["parse"] {
-                                InfoRow(label: "解析", value: String(format: "%.2fs", parse))
-                            }
-                        }
-                    }
+            // 账单卡片（全屏悬浮）
+            if let data = scanResult.data, let invoice = data.invoice {
+                let imageData = image.jpegData(compressionQuality: 0.8)
+                let record = BillRecord(
+                    invoice: invoice,
+                    image: imageData,
+                    scanPerformance: scanResult.performance
+                )
+
+                BillCardView(record: record, backgroundColor: Color(.systemGroupedBackground)) {
+                    // 记账按钮点击
+                    saveRecord(record)
                 }
+                .padding(20)
+                .transition(.scale.combined(with: .opacity))
             }
-            .padding(.vertical)
         }
-        .navigationTitle("识别结果")
-        .navigationBarTitleDisplayMode(.inline)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .alert("保存成功", isPresented: $showingSaveAlert) {
+            Button("查看记账") {
+                dismiss()
+            }
+            Button("继续扫描", role: .cancel) {
+                dismiss()
+            }
+        } message: {
+            Text("账单已保存到记账列表")
+        }
+    }
+
+    // MARK: - 保存记录
+    private func saveRecord(_ record: BillRecord) {
+        withAnimation {
+            billManager.addRecord(record)
+            isSaved = true
+            showingSaveAlert = true
+        }
     }
 }
 
-// MARK: - 信息卡片
-struct InfoCard<Content: View>: View {
-    let title: String
-    let content: Content
-
-    init(title: String, @ViewBuilder content: () -> Content) {
-        self.title = title
-        self.content = content()
-    }
+// MARK: - 性能统计卡片
+struct PerformanceCard: View {
+    let performance: [String: Double]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(title)
+            Text("性能统计")
                 .font(.headline)
 
-            content
+            HStack(spacing: 20) {
+                if let total = performance["total"] {
+                    StatItem(label: "总耗时", value: String(format: "%.2fs", total), color: .blue)
+                }
+                if let ocr = performance["ocr"] {
+                    StatItem(label: "OCR", value: String(format: "%.2fs", ocr), color: .green)
+                }
+                if let parse = performance["parse"] {
+                    StatItem(label: "解析", value: String(format: "%.2fs", parse), color: .purple)
+                }
+            }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemBackground))
-        .cornerRadius(12)
-        .padding(.horizontal)
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
     }
 }
 
-// MARK: - 信息行
-struct InfoRow: View {
+struct StatItem: View {
     let label: String
     let value: String
+    let color: Color
 
     var body: some View {
-        HStack {
-            Text(label)
-                .font(.system(size: 14))
-                .foregroundColor(.secondary)
-            Spacer()
+        VStack(spacing: 4) {
             Text(value)
-                .font(.system(size: 14))
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(color)
+
+            Text(label)
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+    }
+}
+
+// MARK: - 预览
+struct ResultView_Previews: PreviewProvider {
+    static var previews: some View {
+        let invoice = Invoice(
+            invoiceType: "外卖订单",
+            invoiceNumber: "1234567890",
+            invoiceDate: "2025-12-18 12:00:00",
+            sellerName: "德园闽肠粉·蚝油捞·炖汤（西丽店）",
+            buyerName: nil,
+            buyerPhone: nil,
+            totalAmount: 15.30,
+            items: [
+                InvoiceItem(name: "闽肠粉", quantity: 1, unitPrice: 15.30, amount: 15.30, description: nil)
+            ],
+            remarks: nil
+        )
+
+        let scanData = ScanData(
+            type: "single_order",
+            invoice: invoice,
+            stats: nil,
+            orders: nil
+        )
+
+        let scanResult = ScanResult(
+            success: true,
+            data: scanData,
+            error: nil,
+            performance: ["total": 2.5, "ocr": 0.8, "parse": 1.7]
+        )
+
+        NavigationStack {
+            ResultView(
+                scanResult: scanResult,
+                image: UIImage(systemName: "photo")!
+            )
         }
     }
 }

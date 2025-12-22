@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>账单卡片设计 - 星巴克风格</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif;
+            background: #f0f0f5;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 375px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #1c1c1e;
+        }
+
+        /* 卡片容器 */
+        .bill-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 24px;
+            overflow: visible;
+            position: relative;
+        }
+
+        /* 顶部导航栏 */
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .back-button {
+            font-size: 20px;
+            color: #1c1c1e;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .header-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1c1c1e;
+        }
+
+        .close-button {
+            font-size: 20px;
+            color: #1c1c1e;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* 商家Logo区域 */
+        .merchant-section {
+            text-align: center;
+            padding: 24px 20px 20px;
+        }
+
+        .merchant-logo {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 12px;
+            background: #00704A;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .merchant-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 4px;
+        }
+
+        .merchant-time {
+            font-size: 13px;
+            color: #8e8e93;
+        }
+
+        /* 总金额区域 */
+        .total-section {
+            padding: 20px 20px 24px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .total-label {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1c1c1e;
+        }
+
+        .total-amount {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1c1c1e;
+        }
+
+        /* 商品列表 */
+        .items-list {
+            padding: 0 20px 20px;
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+
+        .item-name {
+            flex: 1;
+            color: #1c1c1e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .item-quantity {
+            color: #8e8e93;
+        }
+
+        .item-price {
+            color: #1c1c1e;
+            font-weight: 500;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        /* 费用明细 */
+        .fees-section {
+            padding: 12px 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .fee-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 14px;
+        }
+
+        .fee-label {
+            color: #8e8e93;
+        }
+
+        .fee-value {
+            color: #1c1c1e;
+        }
+
+        /* 虚线分隔 */
+        .dashed-divider {
+            margin: 20px 20px;
+            border-top: 2px dashed #e0e0e0;
+            position: relative;
+            height: 0;
+        }
+
+        /* 左侧半圆缺口 */
+        .dashed-divider::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: -10px;
+            width: 20px;
+            height: 20px;
+            background: #f0f0f5;
+            border-radius: 50%;
+            z-index: 10;
+        }
+
+        /* 右侧半圆缺口 */
+        .dashed-divider::after {
+            content: '';
+            position: absolute;
+            right: -30px;
+            top: -10px;
+            width: 20px;
+            height: 20px;
+            background: #f0f0f5;
+            border-radius: 50%;
+            z-index: 10;
+        }
+
+        /* 条形码区域 */
+        .barcode-section {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .barcode {
+            width: 200px;
+            height: 60px;
+            margin: 0 auto 12px;
+            background: linear-gradient(90deg,
+                #000 0%, #000 4%, #fff 4%, #fff 6%,
+                #000 6%, #000 8%, #fff 8%, #fff 12%,
+                #000 12%, #000 14%, #fff 14%, #fff 16%,
+                #000 16%, #000 20%, #fff 20%, #fff 22%,
+                #000 22%, #000 24%, #fff 24%, #fff 28%,
+                #000 28%, #000 30%, #fff 30%, #fff 32%,
+                #000 32%, #000 36%, #fff 36%, #fff 38%,
+                #000 38%, #000 40%, #fff 40%, #fff 44%,
+                #000 44%, #000 46%, #fff 46%, #fff 48%,
+                #000 48%, #000 52%, #fff 52%, #fff 54%,
+                #000 54%, #000 56%, #fff 56%, #fff 60%,
+                #000 60%, #000 62%, #fff 62%, #fff 64%,
+                #000 64%, #000 68%, #fff 68%, #fff 70%,
+                #000 70%, #000 72%, #fff 72%, #fff 76%,
+                #000 76%, #000 78%, #fff 78%, #fff 80%,
+                #000 80%, #000 84%, #fff 84%, #fff 86%,
+                #000 86%, #000 88%, #fff 88%, #fff 92%,
+                #000 92%, #000 94%, #fff 94%, #fff 96%,
+                #000 96%, #000 100%
+            );
+            border-radius: 4px;
+        }
+
+        .barcode-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 20px;
+        }
+
+        /* 按钮 */
+        .action-button {
+            width: calc(100% - 40px);
+            margin: 0 20px 20px;
+            height: 52px;
+            background: #00A86B;
+            color: white;
+            border: none;
+            border-radius: 26px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .action-button:hover {
+            opacity: 0.9;
+        }
+
+        /* 记账按钮（橙色） */
+        .save-button {
+            background: #FF9500;
+        }
+
+        /* 响应式 */
+        @media (max-width: 375px) {
+            .container {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>账单卡片设计（星巴克风格）</h1>
+
+        <!-- 卡片1: 完整版 - 带商品明细 -->
+        <div class="bill-card">
+            <!-- 顶部导航 -->
+            <div class="card-header">
+                <button class="back-button">‹</button>
+                <div class="header-title">Scan Completed</div>
+                <button class="close-button">✕</button>
+            </div>
+
+            <!-- 商家信息 -->
+            <div class="merchant-section">
+                <div class="merchant-logo">☕</div>
+                <div class="merchant-name">Starbuck Coffee</div>
+                <div class="merchant-time">12 Dec, 2022 · 09:30</div>
+            </div>
+
+            <!-- 总金额 -->
+            <div class="total-section">
+                <div class="total-row">
+                    <div class="total-label">Total Payment</div>
+                    <div class="total-amount">$83.27</div>
+                </div>
+            </div>
+
+            <!-- 商品列表 -->
+            <div class="items-list">
+                <div class="item-row">
+                    <div class="item-name">
+                        <span>Mocha Grande</span>
+                        <span class="item-quantity">×1</span>
+                    </div>
+                    <div class="item-price">$24.50</div>
+                </div>
+                <div class="item-row">
+                    <div class="item-name">
+                        <span>Muffin Blueberry, Regular</span>
+                        <span class="item-quantity">×1</span>
+                    </div>
+                    <div class="item-price">$10.13</div>
+                </div>
+                <div class="item-row">
+                    <div class="item-name">
+                        <span>Muffin Blueberry, Regular</span>
+                        <span class="item-quantity">×1</span>
+                    </div>
+                    <div class="item-price">$10.13</div>
+                </div>
+                <div class="item-row">
+                    <div class="item-name">
+                        <span>Matcha Grande</span>
+                        <span class="item-quantity">×1</span>
+                    </div>
+                    <div class="item-price">$24.50</div>
+                </div>
+                <div class="item-row">
+                    <div class="item-name">
+                        <span>Muffin Blueberry, Regular</span>
+                        <span class="item-quantity">×1</span>
+                    </div>
+                    <div class="item-price">$10.13</div>
+                </div>
+            </div>
+
+            <!-- 费用明细 -->
+            <div class="fees-section">
+                <div class="fee-row">
+                    <div class="fee-label">Tip</div>
+                    <div class="fee-value">$5.00</div>
+                </div>
+                <div class="fee-row">
+                    <div class="fee-label">Total Tax</div>
+                    <div class="fee-value">$3.27</div>
+                </div>
+                <div class="fee-row">
+                    <div class="fee-label">Discount</div>
+                    <div class="fee-value">0</div>
+                </div>
+            </div>
+
+            <!-- 虚线分隔 -->
+            <div class="dashed-divider"></div>
+
+            <!-- 条形码 -->
+            <div class="barcode-section">
+                <div class="barcode"></div>
+                <div class="barcode-text">THANK YOU!</div>
+            </div>
+
+            <!-- 按钮 -->
+            <button class="action-button">Send Bill</button>
+        </div>
+
+        <!-- 卡片2: 中文版 - 德园闽肠粉 -->
+        <div class="bill-card">
+            <div class="card-header">
+                <button class="back-button">‹</button>
+                <div class="header-title">扫描完成</div>
+                <button class="close-button">✕</button>
+            </div>
+
+            <div class="merchant-section">
+                <div class="merchant-logo" style="background: #FF6B35;">🍜</div>
+                <div class="merchant-name">德园闽肠粉·蚝油捞·炖汤</div>
+                <div class="merchant-time">2025年12月18日 · 14:30</div>
+            </div>
+
+            <div class="total-section">
+                <div class="total-row">
+                    <div class="total-label">总金额</div>
+                    <div class="total-amount">¥132.00</div>
+                </div>
+            </div>
+
+            <div class="items-list">
+                <div class="item-row">
+                    <div class="item-name">
+                        <span>闽肠粉</span>
+                        <span class="item-quantity">×1</span>
+                    </div>
+                    <div class="item-price">¥15.30</div>
+                </div>
+                <div class="item-row">
+                    <div class="item-name">
+                        <span>蚝油捞面</span>
+                        <span class="item-quantity">×2</span>
+                    </div>
+                    <div class="item-price">¥36.00</div>
+                </div>
+                <div class="item-row">
+                    <div class="item-name">
+                        <span>炖汤</span>
+                        <span class="item-quantity">×1</span>
+                    </div>
+                    <div class="item-price">¥12.00</div>
+                </div>
+            </div>
+
+            <div class="dashed-divider"></div>
+
+            <div class="barcode-section">
+                <div class="barcode"></div>
+                <div class="barcode-text">谢谢惠顾！</div>
+            </div>
+
+            <button class="action-button save-button">记账</button>
+        </div>
+
+        <!-- 卡片3: 简化版 - 无商品明细 -->
+        <div class="bill-card">
+            <div class="card-header">
+                <button class="back-button">‹</button>
+                <div class="header-title">扫描完成</div>
+                <button class="close-button">✕</button>
+            </div>
+
+            <div class="merchant-section">
+                <div class="merchant-logo" style="background: #00704A;">☕</div>
+                <div class="merchant-name">星巴克咖啡</div>
+                <div class="merchant-time">2025年12月17日 · 09:45</div>
+            </div>
+
+            <div class="total-section">
+                <div class="total-row">
+                    <div class="total-label">总金额</div>
+                    <div class="total-amount">¥45.00</div>
+                </div>
+            </div>
+
+            <div class="dashed-divider"></div>
+
+            <div class="barcode-section">
+                <div class="barcode"></div>
+                <div class="barcode-text">THANK YOU!</div>
+            </div>
+
+            <button class="action-button save-button">记账</button>
+        </div>
+
+    </div>
+</body>
+</html>
