@@ -45,6 +45,23 @@ class ExpenseActivityManager {
         }
     }
 
+    func updateActivity(merchant: String, amount: Double, time: String?, message: String) async {
+        guard let activity = currentActivity else { return }
+
+        let contentState = ExpenseActivityAttributes.ContentState(
+            merchant: merchant,
+            amount: amount,
+            time: time,
+            message: message
+        )
+
+        // 更新 Live Activity 内容
+        let futureDate = Calendar.current.date(byAdding: .second, value: 30, to: Date())
+        await activity.update(
+            ActivityContent(state: contentState, staleDate: futureDate)
+        )
+    }
+
     func endActivity() async {
         guard let activity = currentActivity else { return }
         await activity.end(nil, dismissalPolicy: .immediate)
