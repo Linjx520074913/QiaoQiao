@@ -31,12 +31,14 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
     }()
 
     // 应用图标
-    private let appIconLabel: UILabel = {
-        let label = UILabel()
-        label.text = "📊"
-        label.font = UIFont.systemFont(ofSize: 24)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
+    private let appIconImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(named: "SlothIcon")
+        imageView.contentMode = .scaleAspectFit
+        imageView.layer.cornerRadius = 8
+        imageView.layer.masksToBounds = true
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
     }()
 
     // 应用标题
@@ -147,7 +149,7 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
 
         // 添加头部
         view.addSubview(headerContainer)
-        headerContainer.addSubview(appIconLabel)
+        headerContainer.addSubview(appIconImageView)
         headerContainer.addSubview(appTitleLabel)
 
         // 添加状态容器
@@ -170,11 +172,13 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
             headerContainer.heightAnchor.constraint(equalToConstant: 32),
 
             // 应用图标
-            appIconLabel.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor),
-            appIconLabel.centerYAnchor.constraint(equalTo: headerContainer.centerYAnchor),
+            appIconImageView.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor),
+            appIconImageView.centerYAnchor.constraint(equalTo: headerContainer.centerYAnchor),
+            appIconImageView.widthAnchor.constraint(equalToConstant: 32),
+            appIconImageView.heightAnchor.constraint(equalToConstant: 32),
 
             // 应用标题
-            appTitleLabel.leadingAnchor.constraint(equalTo: appIconLabel.trailingAnchor, constant: 8),
+            appTitleLabel.leadingAnchor.constraint(equalTo: appIconImageView.trailingAnchor, constant: 8),
             appTitleLabel.centerYAnchor.constraint(equalTo: headerContainer.centerYAnchor),
 
             // 状态容器 - 自适应宽度，胶囊形状

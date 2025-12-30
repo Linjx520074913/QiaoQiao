@@ -62,7 +62,7 @@
 				<array/>
 			</dict>
 			<key>INIntentTitle</key>
-			<string>显示消费卡片</string>
+			<string>悄悄自动记账</string>
 			<key>INIntentTitleID</key>
 			<string>gpCcHa</string>
 			<key>INIntentType</key>
