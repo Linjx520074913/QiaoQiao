@@ -89,17 +89,8 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
         return label
     }()
 
-    // 完成按钮
-    private let completeButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("完成", for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
-        button.backgroundColor = UIColor.systemBlue
-        button.setTitleColor(.white, for: .normal)
-        button.layer.cornerRadius = 25
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
+    // 完成按钮 - 已移除，使用系统按钮
+    // private let completeButton: UIButton = { ... }()
 
     // 调试标签
     private let debugLabel: UILabel = {
@@ -167,10 +158,6 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
         // 添加提示文字
         view.addSubview(hintLabel)
 
-        // 添加完成按钮
-        view.addSubview(completeButton)
-        completeButton.addTarget(self, action: #selector(completeButtonTapped), for: .touchUpInside)
-
         // 添加调试标签
         view.addSubview(debugLabel)
 
@@ -209,27 +196,17 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
             hintLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
             hintLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
 
-            // 完成按钮
-            completeButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
-            completeButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
-            completeButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20),
-            completeButton.heightAnchor.constraint(equalToConstant: 50),
-
             // 调试标签
             debugLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
             debugLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
-            debugLabel.bottomAnchor.constraint(equalTo: completeButton.topAnchor, constant: -8)
+            debugLabel.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20)
         ])
 
         // 初始状态：显示"分析中..."
         showAnalyzing()
     }
 
-    @objc private func completeButtonTapped() {
-        print("✅ [IntentUI] 完成按钮被点击")
-        // 直接关闭 Intent UI Extension
-        self.extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
-    }
+    // 完成按钮处理方法已移除，使用系统按钮
 
     // MARK: - State Management
     private func showAnalyzing() {
@@ -352,9 +329,10 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
     // MARK: - INUIHostedViewControlling
     func configureView(for parameters: Set<INParameter>, of interaction: INInteraction, interactiveBehavior: INUIInteractiveBehavior, context: INUIHostedViewContext, completion: @escaping (Bool, Set<INParameter>, CGSize) -> Void) {
 
-        print("🎨 [IntentUI] configureView 被调用")
+        print("🎨🎨🎨 [IntentUI] configureView 被调用!!!")
         print("   - interactiveBehavior: \(interactiveBehavior.rawValue)")
         print("   - context: \(context.rawValue)")
+        print("   - interaction.intent: \(interaction.intent)")
         print("   - hostedViewMaximumAllowedSize: \(self.extensionContext!.hostedViewMaximumAllowedSize)")
 
         // 设置合适的高度以容纳所有元素
@@ -363,9 +341,8 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
 
         print("   - 返回的 desiredSize: \(desiredSize)")
 
-        // 关键：返回 false 和空的参数集，明确告诉系统我们的 UI 不需要任何用户交互
-        // 这应该能避免系统添加确认界面
-        completion(false, Set(), desiredSize)
+        // 对于 information category 的 Intent，需要返回 true 表示我们要显示自定义 UI
+        completion(true, parameters, desiredSize)
     }
 
     var desiredSize: CGSize {

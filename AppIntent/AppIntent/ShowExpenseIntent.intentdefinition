@@ -27,6 +27,8 @@
 			<string>lG3qJQ</string>
 			<key>INIntentEligibleForSuggestions</key>
 			<true/>
+			<key>INIntentIneligibleForSuggestions</key>
+			<false/>
 			<key>INIntentLastParameterTag</key>
 			<integer>1</integer>
 			<key>INIntentName</key>
