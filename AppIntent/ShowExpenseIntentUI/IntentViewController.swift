@@ -42,7 +42,7 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
     // 应用标题
     private let appTitleLabel: UILabel = {
         let label = UILabel()
-        label.text = "昨夜记账 | 自动记账"
+        label.text = "悄悄记账 | 自动记账"
         label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         label.textColor = .label
         label.translatesAutoresizingMaskIntoConstraints = false
