@@ -241,14 +241,27 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
         hintLabel.text = message
     }
 
-    // MARK: - Dot Animation (已弃用，使用脉冲动画代替)
+    // MARK: - Dot Animation
     private func startDotAnimation() {
-        // 现在使用 startPulseAnimation() 代替
+        dotCount = 0
+        dotAnimationTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+
+            self.dotCount = (self.dotCount + 1) % 4
+            let dots = String(repeating: ".", count: self.dotCount)
+
+            DispatchQueue.main.async {
+                self.statusLabel.text = "分析中\(dots)"
+            }
+        }
     }
 
     // MARK: - Bill Recognition
     private func startBillRecognition() {
         print("🚀 [IntentUI] 开始识别流程...")
+
+        // 启动点点动画
+        startDotAnimation()
 
         Task {
             await performBillScan()
