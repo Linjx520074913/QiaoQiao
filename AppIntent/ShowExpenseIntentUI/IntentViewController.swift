@@ -30,6 +30,14 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
         return view
     }()
 
+    // 内容容器（白色背景）
+    private let contentContainer: UIView = {
+        let view = UIView()
+        view.backgroundColor = .systemBackground  // 白色背景
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
     // 应用图标
     private let appIconImageView: UIImageView = {
         let imageView = UIImageView()
@@ -45,8 +53,8 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
     private let appTitleLabel: UILabel = {
         let label = UILabel()
         label.text = "悄悄记账 | 自动记账"
-        label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        label.textColor = .label
+        label.font = UIFont.systemFont(ofSize: 15, weight: .regular)
+        label.textColor = .label  // 系统主文字颜色（深色）
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -54,7 +62,7 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
     // 状态容器（带圆角背景，自适应宽度的胶囊形状）
     private let statusContainer: UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor.systemGray6
+        view.backgroundColor = UIColor(red: 0.93, green: 0.93, blue: 0.95, alpha: 1.0)  // 浅灰蓝色
         view.layer.cornerRadius = 20  // 更大的圆角，形成胶囊效果
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
@@ -77,6 +85,15 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
         label.textColor = .label
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
+    }()
+
+    // 提示文字容器（浅绿色背景）
+    private let hintContainer: UIView = {
+        let view = UIView()
+        view.backgroundColor = UIColor(red: 0.85, green: 0.95, blue: 0.85, alpha: 1.0)  // 浅绿色
+        view.layer.cornerRadius = 8
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
     }()
 
     // 提示文字
@@ -144,20 +161,24 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
 
     // MARK: - Setup
     private func setupUI() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .systemGray6  // 和系统弹窗顶部颜色一致
 
         // 添加头部
         view.addSubview(headerContainer)
         headerContainer.addSubview(appIconImageView)
         headerContainer.addSubview(appTitleLabel)
 
-        // 添加状态容器
-        view.addSubview(statusContainer)
+        // 添加内容容器
+        view.addSubview(contentContainer)
+
+        // 添加状态容器到内容容器
+        contentContainer.addSubview(statusContainer)
         statusContainer.addSubview(statusIconLabel)
         statusContainer.addSubview(statusLabel)
 
-        // 添加提示文字
-        view.addSubview(hintLabel)
+        // 添加提示文字容器到内容容器
+        contentContainer.addSubview(hintContainer)
+        hintContainer.addSubview(hintLabel)
 
         // 添加调试标签
         view.addSubview(debugLabel)
@@ -183,9 +204,15 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
             appTitleLabel.leadingAnchor.constraint(equalTo: appIconImageView.trailingAnchor, constant: 8),
             appTitleLabel.centerYAnchor.constraint(equalTo: headerContainer.centerYAnchor),
 
-            // 状态容器 - 自适应宽度，胶囊形状
-            statusContainer.topAnchor.constraint(equalTo: headerContainer.bottomAnchor, constant: 20),
-            statusContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            // 内容容器 - 白色背景，和标题栏分开，完全贴边，延伸到底部
+            contentContainer.topAnchor.constraint(equalTo: headerContainer.bottomAnchor, constant: 12),
+            contentContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            contentContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            contentContainer.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            // 状态容器 - 自适应宽度，胶囊形状，在内容容器内
+            statusContainer.topAnchor.constraint(equalTo: contentContainer.topAnchor, constant: 16),
+            statusContainer.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor, constant: 16),
             statusContainer.heightAnchor.constraint(equalToConstant: 40),
 
             // 状态图标
@@ -197,10 +224,16 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
             statusLabel.centerYAnchor.constraint(equalTo: statusContainer.centerYAnchor),
             statusLabel.trailingAnchor.constraint(equalTo: statusContainer.trailingAnchor, constant: -14),
 
-            // 提示文字
-            hintLabel.topAnchor.constraint(equalTo: statusContainer.bottomAnchor, constant: 40),
-            hintLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
-            hintLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
+            // 提示文字容器 - 浅绿色背景
+            hintContainer.topAnchor.constraint(equalTo: statusContainer.bottomAnchor, constant: 16),
+            hintContainer.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor, constant: 16),
+            hintContainer.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor, constant: -16),
+
+            // 提示文字 - 在提示容器内
+            hintLabel.topAnchor.constraint(equalTo: hintContainer.topAnchor, constant: 12),
+            hintLabel.leadingAnchor.constraint(equalTo: hintContainer.leadingAnchor, constant: 12),
+            hintLabel.trailingAnchor.constraint(equalTo: hintContainer.trailingAnchor, constant: -12),
+            hintLabel.bottomAnchor.constraint(equalTo: hintContainer.bottomAnchor, constant: -12),
 
             // 调试标签
             debugLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
