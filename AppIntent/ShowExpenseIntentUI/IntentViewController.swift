@@ -68,13 +68,14 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
         return view
     }()
 
-    // 状态图标
-    private let statusIconLabel: UILabel = {
-        let label = UILabel()
-        label.text = "🧐"
-        label.font = UIFont.systemFont(ofSize: 18)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
+    // 状态图标 - 思考树懒
+    private let statusIconImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(named: "ThinkingSloth")
+        imageView.contentMode = .scaleAspectFit
+        imageView.backgroundColor = .clear  // 确保背景透明
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
     }()
 
     // 状态文字
@@ -87,11 +88,19 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
         return label
     }()
 
-    // 提示文字容器（浅绿色背景）
+    // 账单图标
+    private let receiptIconImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(named: "ReceiptIcon")
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+
+    // 提示文字容器
     private let hintContainer: UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor(red: 0.85, green: 0.95, blue: 0.85, alpha: 1.0)  // 浅绿色
-        view.layer.cornerRadius = 8
+        view.backgroundColor = .clear  // 透明背景
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -104,6 +113,47 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
         label.textColor = .secondaryLabel
         label.textAlignment = .left
         label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    // 结果容器 - 用于显示识别成功后的商家信息
+    private let resultContainer: UIView = {
+        let view = UIView()
+        view.backgroundColor = .clear
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isHidden = true  // 初始隐藏
+        return view
+    }()
+
+    // 商家图标
+    private let merchantIconImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFit
+        imageView.backgroundColor = UIColor(red: 0.95, green: 0.95, blue: 0.97, alpha: 1.0)
+        imageView.layer.cornerRadius = 12
+        imageView.layer.masksToBounds = true
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        // 默认显示一个占位图标
+        imageView.image = UIImage(systemName: "storefront.fill")
+        imageView.tintColor = .systemGray
+        return imageView
+    }()
+
+    // 商家名称
+    private let merchantNameLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        label.textColor = .label
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    // 金额标签
+    private let amountLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 24, weight: .bold)
+        label.textColor = .systemRed
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -171,14 +221,23 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
         // 添加内容容器
         view.addSubview(contentContainer)
 
-        // 添加状态容器到内容容器
+        // 添加树懒图标和状态容器到内容容器
+        contentContainer.addSubview(statusIconImageView)
         contentContainer.addSubview(statusContainer)
-        statusContainer.addSubview(statusIconLabel)
         statusContainer.addSubview(statusLabel)
+
+        // 添加账单图标
+        contentContainer.addSubview(receiptIconImageView)
 
         // 添加提示文字容器到内容容器
         contentContainer.addSubview(hintContainer)
         hintContainer.addSubview(hintLabel)
+
+        // 添加结果容器
+        contentContainer.addSubview(resultContainer)
+        resultContainer.addSubview(merchantIconImageView)
+        resultContainer.addSubview(merchantNameLabel)
+        resultContainer.addSubview(amountLabel)
 
         // 添加调试标签
         view.addSubview(debugLabel)
@@ -210,22 +269,30 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
             contentContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             contentContainer.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            // 状态容器 - 自适应宽度，胶囊形状，在内容容器内
-            statusContainer.topAnchor.constraint(equalTo: contentContainer.topAnchor, constant: 16),
-            statusContainer.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor, constant: 16),
-            statusContainer.heightAnchor.constraint(equalToConstant: 40),
+            // 树懒图标 - 独立显示，无背景
+            statusIconImageView.topAnchor.constraint(equalTo: contentContainer.topAnchor, constant: 16),
+            statusIconImageView.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor, constant: 16),
+            statusIconImageView.widthAnchor.constraint(equalToConstant: 48),
+            statusIconImageView.heightAnchor.constraint(equalToConstant: 48),
 
-            // 状态图标
-            statusIconLabel.leadingAnchor.constraint(equalTo: statusContainer.leadingAnchor, constant: 12),
-            statusIconLabel.centerYAnchor.constraint(equalTo: statusContainer.centerYAnchor),
+            // 状态容器 - 只包含文字的胶囊
+            statusContainer.centerYAnchor.constraint(equalTo: statusIconImageView.centerYAnchor),
+            statusContainer.leadingAnchor.constraint(equalTo: statusIconImageView.trailingAnchor, constant: 12),
+            statusContainer.heightAnchor.constraint(equalToConstant: 32),
 
             // 状态文字
-            statusLabel.leadingAnchor.constraint(equalTo: statusIconLabel.trailingAnchor, constant: 6),
+            statusLabel.leadingAnchor.constraint(equalTo: statusContainer.leadingAnchor, constant: 14),
             statusLabel.centerYAnchor.constraint(equalTo: statusContainer.centerYAnchor),
             statusLabel.trailingAnchor.constraint(equalTo: statusContainer.trailingAnchor, constant: -14),
 
+            // 账单图标 - 在状态容器和提示文字之间
+            receiptIconImageView.topAnchor.constraint(equalTo: statusIconImageView.bottomAnchor, constant: 20),
+            receiptIconImageView.centerXAnchor.constraint(equalTo: contentContainer.centerXAnchor),
+            receiptIconImageView.widthAnchor.constraint(equalToConstant: 80),
+            receiptIconImageView.heightAnchor.constraint(equalToConstant: 80),
+
             // 提示文字容器 - 浅绿色背景
-            hintContainer.topAnchor.constraint(equalTo: statusContainer.bottomAnchor, constant: 16),
+            hintContainer.topAnchor.constraint(equalTo: receiptIconImageView.bottomAnchor, constant: 16),
             hintContainer.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor, constant: 16),
             hintContainer.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor, constant: -16),
 
@@ -234,6 +301,26 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
             hintLabel.leadingAnchor.constraint(equalTo: hintContainer.leadingAnchor, constant: 12),
             hintLabel.trailingAnchor.constraint(equalTo: hintContainer.trailingAnchor, constant: -12),
             hintLabel.bottomAnchor.constraint(equalTo: hintContainer.bottomAnchor, constant: -12),
+
+            // 结果容器 - 和账单图标占据相同位置
+            resultContainer.topAnchor.constraint(equalTo: statusIconImageView.bottomAnchor, constant: 20),
+            resultContainer.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor, constant: 16),
+            resultContainer.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor, constant: -16),
+            resultContainer.heightAnchor.constraint(equalToConstant: 80),
+
+            // 商家图标
+            merchantIconImageView.leadingAnchor.constraint(equalTo: resultContainer.leadingAnchor),
+            merchantIconImageView.centerYAnchor.constraint(equalTo: resultContainer.centerYAnchor),
+            merchantIconImageView.widthAnchor.constraint(equalToConstant: 60),
+            merchantIconImageView.heightAnchor.constraint(equalToConstant: 60),
+
+            // 商家名称
+            merchantNameLabel.leadingAnchor.constraint(equalTo: merchantIconImageView.trailingAnchor, constant: 12),
+            merchantNameLabel.topAnchor.constraint(equalTo: merchantIconImageView.topAnchor, constant: 8),
+
+            // 金额标签
+            amountLabel.leadingAnchor.constraint(equalTo: merchantIconImageView.trailingAnchor, constant: 12),
+            amountLabel.bottomAnchor.constraint(equalTo: merchantIconImageView.bottomAnchor, constant: -8),
 
             // 调试标签
             debugLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
@@ -246,9 +333,11 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
 
     // MARK: - State Management
     private func showAnalyzing() {
-        statusIconLabel.text = "🧐"
+        statusIconImageView.image = UIImage(named: "ThinkingSloth")
         statusLabel.text = "分析中..."
-        hintLabel.text = "呼呼，胖胖正在努力分析账单..."
+
+        // 隐藏提示容器
+        hintContainer.isHidden = true
 
         // 启动数据轮询
         scheduleResultDisplay()
@@ -259,17 +348,35 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
         dotAnimationTimer?.invalidate()
         countdownTimer?.invalidate()
 
-        // 更新状态
-        statusIconLabel.text = "✅"
+        // 更新状态为开心树懒
+        statusIconImageView.image = UIImage(named: "HappySloth")
         statusLabel.text = "识别完成"
-        hintLabel.text = "\(merchant) · ¥\(String(format: "%.2f", amount))"
+
+        // 隐藏账单图标和提示容器
+        UIView.animate(withDuration: 0.3) {
+            self.receiptIconImageView.alpha = 0
+            self.hintContainer.alpha = 0
+        } completion: { _ in
+            self.receiptIconImageView.isHidden = true
+            self.hintContainer.isHidden = true
+        }
+
+        // 显示结果容器
+        merchantNameLabel.text = merchant
+        amountLabel.text = "¥\(String(format: "%.2f", amount))"
+
+        resultContainer.alpha = 0
+        resultContainer.isHidden = false
+        UIView.animate(withDuration: 0.3) {
+            self.resultContainer.alpha = 1
+        }
     }
 
     private func showError(message: String) {
         dotAnimationTimer?.invalidate()
         countdownTimer?.invalidate()
 
-        statusIconLabel.text = "❌"
+        statusIconImageView.image = UIImage(named: "SadSloth")
         statusLabel.text = "识别失败"
         hintLabel.text = message
     }
@@ -499,9 +606,9 @@ class IntentViewController: UIViewController, INUIHostedViewControlling {
         print("   - interaction.intent: \(interaction.intent)")
         print("   - hostedViewMaximumAllowedSize: \(self.extensionContext!.hostedViewMaximumAllowedSize)")
 
-        // 设置合适的高度以容纳所有元素
+        // 设置合适的高度以容纳所有元素（账单图标 + 结果区域）
         let desiredSize = CGSize(width: self.extensionContext!.hostedViewMaximumAllowedSize.width,
-                                height: 280)
+                                height: 240)
 
         print("   - 返回的 desiredSize: \(desiredSize)")
 
